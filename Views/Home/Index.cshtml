@@ -1,0 +1,99 @@
+﻿
+@{    
+    ViewData["Title"] = "Home Page";   
+}
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Input Age of Death <input type="text" id="Age" required/> </p>
+    <p>Input Year of Death <input type="text" id="Year" required/> </p>
+    <p><input type="button" onclick='process()' value="Process" id="process" /> <input type="button" onclick='reset()' value="Reset" id="reset" /> </p>
+    <p><input type="button" onclick='CheckResult()' value="Result" id="res_button" /> </p>
+    
+    <p><span id="res"></span></p>
+    <div class="item-body" style="background-color: #f6f6f6; border: 1px solid #c9c9c9; margin-top: 12px; padding: 20px;" id="counting">
+        <p><span id="output"></span></p>
+    </div>
+
+
+</div>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script>
+
+    var count = 0;
+    var arrAge = [];
+    var arrYear = [];
+
+    $("document").ready(function () {
+        $("#counting").hide();
+        $("#res_button").prop('disabled', true);
+        $("#reset").prop('disabled', true);
+        document.getElementById("Age").focus();
+    });
+
+    function process() {
+        var age = $("#Age").val();
+        var year = $("#Year").val();
+        arrAge.push(age);
+        arrYear.push(year);
+        count++;
+        document.getElementById('res').innerHTML += "Person " + count + ": Age of death = "
+            + document.getElementById("Age").value + ", Year of Death = "
+            + document.getElementById("Year").value + "</br>";
+        $("#res_button").prop('disabled', false);
+        $("#reset").prop('disabled', false);
+        $("#Age").val('');
+        $("#Year").val('');
+        document.getElementById("Age").focus();
+
+
+    }
+
+    function CheckResult() {
+        $.ajax({
+            url: '/Home/GetAndFillKilledVillager',
+            type: "POST",
+            data: {
+                Ages: arrAge,
+                Years: arrYear                
+            },
+            success: function (data) {
+                var hit = 0;
+                $.each(data.data, function () {
+                    hit++;
+                    document.getElementById('output').innerHTML += "Person " + hit + ": Born on year = "
+                        + this.year + " - " + this.age + " = " + this.born +", number of  people killed on year "
+                        + this.born + " is " + this.killed + ".</br>";
+                });                
+
+                document.getElementById('output').innerHTML += "So the average is (" + data.rata2 + ")/"
+                    + data.countData + " = " + data.result;
+                $("#counting").show();
+                $("#res_button").prop('disabled', true);                
+
+            },
+            error: function () { alert("Application error. Please try again."); },
+            beforeSend: function () {
+                //showAlert('Loader', 'Loading...');
+            },
+            complete: function () {
+                
+            }
+        });
+
+        
+
+    }
+
+    function reset() {
+        $("#Age").val('');
+        $("#Year").val('');
+        $("#counting").hide();
+        $("#res_button").prop('disabled', true);
+        $("#reset").prop('disabled', true);
+        document.getElementById('res').innerHTML = "";
+        document.getElementById('output').innerHTML = "";
+        arrAge = [];
+        arrYear = [];
+        count = 0;
+    }
+</script>
